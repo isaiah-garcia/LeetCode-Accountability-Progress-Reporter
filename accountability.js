@@ -1,13 +1,87 @@
+#!/usr/bin/env node
 
-// step 1: setup login type, 
+
+// step 1: for initial setup: setup login type, passwords, your email, recipient's email and name
+// select login method: regular login, google, github, facebook, linkedin
+
 // step 2: look for autocomplete credintials
-// step 3: login
+// step 3: login with github (START HERE) (check for existing credentials)
 // step 4: go to problems completed page
 // step 5: count rows, save to file (if there was no existing file note that for next step)
 // step 6: send email (first time gets a different message)
 // step 7: 
 
+require('dotenv').config();
+const puppeteer = require('puppeteer');
+const nodemailer = require('nodemailer');
 
+async function countRowsAndEmail() {
+  const loginUrl = process.env.LOGIN_URL;
+  const targetUrl = process.env.TARGET_URL;
+  const emailRecipient = process.env.EMAIL_RECIPIENT;
+
+  try {
+    // Launch Puppeteer
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+
+    // Optional: Set viewport size
+    await page.setViewport({ width: 1280, height: 800 });
+
+    // Optional: Set User-Agent to mimic a real browser
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    );
+
+    // Step 1: Navigate to the login page
+    await page.goto(loginUrl, { waitUntil: 'networkidle2' });
+
+    // Step 2: Click the login button (adjust the selector as needed)
+    await page.click('button#loginButton'); // Replace with the actual selector
+    await page.waitForNavigation({ waitUntil: 'networkidle2' });
+
+    console.log('Logged in successfully.');
+
+    // Step 3: Navigate to the target page
+    await page.goto(targetUrl, { waitUntil: 'networkidle2' });
+
+    // Step 4: Count the number of rows in the table
+    const numberOfRows = await page.evaluate(() => {
+      return document.querySelectorAll('div[role="row"]').length;
+    });
+
+    console.log(`The number of rows is: ${numberOfRows}`);
+
+    // Step 5: Send an email with the number of rows
+    // Configure the transporter
+    // const transporter = nodemailer.createTransport({
+    //   service: 'gmail', // Replace with your email service
+    //   auth: {
+    //     user: process.env.EMAIL_USER,
+    //     pass: process.env.EMAIL_PASS,
+    //   },
+    // });
+
+    // Email options
+    // const mailOptions = {
+    //   from: process.env.EMAIL_USER,
+    //   to: emailRecipient,
+    //   subject: 'Daily Row Count',
+    //   text: `The number of rows is: ${numberOfRows}`,
+    // };
+
+    // // Send the email
+    // await transporter.sendMail(mailOptions);
+    // console.log('Email sent successfully.');
+
+    // Close the browser
+    await browser.close();
+  } catch (error) {
+    console.error('An error occurred:', error.message);
+  }
+}
+
+countRowsAndEmail();
 
 
 
