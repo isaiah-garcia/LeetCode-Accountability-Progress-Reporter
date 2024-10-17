@@ -22,7 +22,7 @@ async function countRowsAndEmail() {
 
   try {
     // Launch Puppeteer
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
 
     // Optional: Set viewport size
@@ -37,17 +37,30 @@ async function countRowsAndEmail() {
     await page.goto(loginUrl, { waitUntil: 'networkidle2' });
 
     // Step 2: Click the login button (adjust the selector as needed)
-    await page.click('button#loginButton'); // Replace with the actual selector
+    await page.click('form button[type="submit"]');
     await page.waitForNavigation({ waitUntil: 'networkidle2' });
 
-    console.log('Logged in successfully.');
+    console.log('going to login page.');
+
+    await page.type('#login_field', process.env.USERNAME);  // Adjust the selector
+    await page.type('#password', process.env.PASSWORD);  // Adjust the selector
+
+    console.log('Credentials entered.');
+
+    // Step 2: Click the login button (adjust the selector as needed)
+    await page.click('input[type="submit"]');
+    
+    // Step 3: Wait for navigation after submitting the form
+    await page.waitForNavigation({ waitUntil: 'networkidle2' });
+
+    console.log('Login successful.');
 
     // Step 3: Navigate to the target page
     await page.goto(targetUrl, { waitUntil: 'networkidle2' });
 
     // Step 4: Count the number of rows in the table
     const numberOfRows = await page.evaluate(() => {
-      return document.querySelectorAll('div[role="row"]').length;
+      return document.querySelectorAll('div[role="row"]').length - 1;
     });
 
     console.log(`The number of rows is: ${numberOfRows}`);
