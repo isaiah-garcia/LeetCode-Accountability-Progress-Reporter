@@ -9,44 +9,31 @@ const path = require('path');
 async function countRowsAndEmail() {
   const loginUrl = process.env.LOGIN_URL;
   const targetUrl = process.env.TARGET_URL;
-  const emailRecipient = process.env.EMAIL_RECIPIENT;
 
   try {
-    // Launch Puppeteer
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
 
-    // Optional: Set viewport size
-    await page.setViewport({ width: 1280, height: 800 });
-
-    // Optional: Set User-Agent to mimic a real browser
     await page.setUserAgent(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
     );
 
-    // Step 1: Navigate to the login page
+    // Login
     await page.goto(loginUrl, { waitUntil: 'networkidle2' });
-
-    // Step 2: Click the login button (adjust the selector as needed)
     await page.click('form button[type="submit"]');
     await page.waitForNavigation({ waitUntil: 'networkidle2' });
-
     // console.log('going to login page.');
 
     await page.type('#login_field', process.env.USERNAME);  // Adjust the selector
     await page.type('#password', process.env.PASSWORD);  // Adjust the selector
-
     // console.log('Credentials entered.');
 
-    // Step 2: Click the login button (adjust the selector as needed)
     await page.click('input[type="submit"]');
-    
-    // Step 3: Wait for navigation after submitting the form
     await page.waitForNavigation({ waitUntil: 'networkidle2' });
 
     // console.log('Login successful.');
 
-    // Step 4: Navigate to the target page
+    // Go to progress page
     await page.goto(targetUrl, { waitUntil: 'networkidle2' });
 
     // Step 5: Count finished problems
@@ -91,7 +78,7 @@ async function countRowsAndEmail() {
     const message = [
       `Daily count: ${dailyCount}`,
       `Total problems completed: ${totalCompleted}`
-    ].join('\n');  // Joining the array into a string
+    ].join('\n'); 
 
     // Step 8: Send email to accountability partner
     const transporter = nodemailer.createTransport({
