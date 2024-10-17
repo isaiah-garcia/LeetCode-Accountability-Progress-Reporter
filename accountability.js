@@ -14,6 +14,7 @@
 require('dotenv').config();
 const puppeteer = require('puppeteer');
 const nodemailer = require('nodemailer');
+const { subscribe } = require('diagnostics_channel');
 
 async function countRowsAndEmail() {
   const loginUrl = process.env.LOGIN_URL;
@@ -55,37 +56,77 @@ async function countRowsAndEmail() {
 
     console.log('Login successful.');
 
-    // Step 3: Navigate to the target page
+    // Step 4: Navigate to the target page
     await page.goto(targetUrl, { waitUntil: 'networkidle2' });
 
-    // Step 4: Count the number of rows in the table
+    // Step 5: Count finished problems
     const numberOfRows = await page.evaluate(() => {
-      return document.querySelectorAll('div[role="row"]').length - 1;
+      return document.querySelectorAll('div[role="row"]').length;
     });
 
-    console.log(`The number of rows is: ${numberOfRows}`);
+    const totalCompleted = numberOfRows - 1;
 
-    // Step 5: Send an email with the number of rows
+    // Step 6: update daily progress
+    const fs = require('fs').promises;
+    const path = require('path');
+
+    (async () => {
+        const filePath = path.join(__dirname, 'dailyReport.txt');
+        
+        try {
+            await fs.access(filePath);  // Check if the file exists
+            console.log('Daily report file exists.');
+            
+            // read previous count and subtract today's count from previous count
+            const fileContent = await fs.readFile(filePath, 'utf-8');
+            console.log('File content:', fileContent);
+            const oldCount = parseInt(fileContent, 10);
+            const dailyCount = totalCompleted - oldCount;
+            await fs.writeFile(filePath, totalCompleted, 'utf-8');
+            
+        } catch (error) {
+            console.log('Creating daily report...');
+            
+            await fs.writeFile(filePath, totalCompleted, 'utf-8');
+            console.log('Created dailyReport.txt with default content.');
+        }
+    })();
+
+    // 4. if the daily count > 5: message 1 else message 2
+    if (dailyCount > 5) {
+      const subject = "SUCCESS: LeetCode Accountability"
+    } else {
+      const subject = "HELP: LeetCode Accountability"
+    }
+
+    const message = [
+      `Daily count: ${dailyCount}`,
+      `Total problems completed: ${totalCompleted}`
+    ]
+
+
+    // Step 7: Send email to accountability partner
+
     // Configure the transporter
-    // const transporter = nodemailer.createTransport({
-    //   service: 'gmail', // Replace with your email service
-    //   auth: {
-    //     user: process.env.EMAIL_USER,
-    //     pass: process.env.EMAIL_PASS,
-    //   },
-    // });
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
 
     // Email options
-    // const mailOptions = {
-    //   from: process.env.EMAIL_USER,
-    //   to: emailRecipient,
-    //   subject: 'Daily Row Count',
-    //   text: `The number of rows is: ${numberOfRows}`,
-    // };
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: emailRecipient,
+      subject: `${subject}`,
+      text: `${message}`,
+    };
 
-    // // Send the email
-    // await transporter.sendMail(mailOptions);
-    // console.log('Email sent successfully.');
+    // Send the email
+    await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully.');
 
     // Close the browser
     await browser.close();
