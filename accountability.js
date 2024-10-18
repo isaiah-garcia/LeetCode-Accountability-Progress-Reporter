@@ -13,7 +13,7 @@ async function countRowsAndEmail() {
     let browser;
 
     try {
-        const browser = await puppeteer.launch({ headless: false });
+        browser = await puppeteer.launch({ headless: false });
         const page = await browser.newPage();
 
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)');
@@ -43,13 +43,20 @@ async function countRowsAndEmail() {
 
         let dailyCount = -1;
         let oldCount = 0;
-        let date = formattedDate;
+        let totalCompleted
+        let date
+        
 
         try {
             const fileContent = await fs.readFile(filePath, 'utf-8');
             const lines = fileContent.split(/\r?\n/);
             oldCount = parseInt(lines[0], 10);
             date = lines[1];
+
+        } catch (error) {
+            const data = `${0}\n${formattedDate}`;
+            await fs.writeFile(filePath, data, 'utf-8');
+        }
 
         for (let element of elements) {
             dailyCount++;
@@ -59,67 +66,53 @@ async function countRowsAndEmail() {
             }
         }
 
-        const totalCompleted = oldCount + dailyCount;
+        totalCompleted = oldCount + dailyCount;
         const data = `${totalCompleted}\n${formattedDate}`;
         await fs.writeFile(filePath, data, 'utf-8');
 
-        } catch (error) {
-            const data = `${dailyCount}\n${formattedDate}`;
-            await fs.writeFile(filePath, data, 'utf-8');
+        // Determine the email subject based on daily count
+        let subject;
+        if (dailyCount >= 5) {
+          subject = "SUCCESS: LeetCode Accountability";
+        } else {
+          subject = "HELP: LeetCode Accountability";
         }
 
-      await browser.close();
+        const message = [
+          `Daily count: ${dailyCount}`,
+          `Total problems completed: ${totalCompleted}`
+        ].join('\n'); 
+
+        // Send email to accountability partner
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
+
+        // Email options
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: process.env.EMAIL_RECIPIENT,
+          subject: subject,  
+          text: message,  
+        };
+
+        // Send email
+        await transporter.sendMail(mailOptions);
 
     } catch (error) {
-        if (browser) await browser.close();
-  }
+      console.error("An error occurred:", error);
+    } finally {
+        if (browser) {
+            await browser.close();
+        }
+    }
 }
 
-// Example usage, ensure environment variables are set properly
 countRowsAndEmail();
-
-  
-
-    // Determine the email subject based on daily count
-    // let subject;
-    // if (dailyCount >= 5) {
-    //   subject = "SUCCESS: LeetCode Accountability";
-    // } else {
-    //   subject = "HELP: LeetCode Accountability";
-    // }
-
-    // const message = [
-    //   `Daily count: ${dailyCount}`,
-    //   `Total problems completed: ${totalCompleted}`
-    // ].join('\n'); 
-
-    // // Send email to accountability partner
-    // const transporter = nodemailer.createTransport({
-    //   service: 'gmail',
-    //   auth: {
-    //     user: process.env.EMAIL_USER,
-    //     pass: process.env.EMAIL_PASS,
-    //   },
-    // });
-
-    // // Email options
-    // const mailOptions = {
-    //   from: process.env.EMAIL_USER,
-    //   to: process.env.EMAIL_RECIPIENT,
-    //   subject: subject,  
-    //   text: message,  
-    // };
-
-    // // Send email
-    // await transporter.sendMail(mailOptions);
-
-//     await browser.close();
-//   } catch (error) {
-//     console.error('An error occurred:', error.message);
-//   }
-// }
-
-// countRowsAndEmail();
 
 
 
