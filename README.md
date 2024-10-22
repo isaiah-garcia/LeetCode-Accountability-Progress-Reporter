@@ -50,7 +50,7 @@ EMAIL_PASS=YourNodeMailerPassword
 EMAIL_RECIPIENT=AccountabilityPartnerEmail
 ```
 
-OTHER LOGIN URLs YOU CAN USE: \
+CHOOSE YOUR LEETCODE LOGIN METHOD: \
 Google: https://leetcode.com/accounts/google/login/?next=%2F \
 GitHub: https://leetcode.com/accounts/github/login/?next=%2F \
 Facebook: https://leetcode.com/accounts/facebook/login/?next=%2F \
