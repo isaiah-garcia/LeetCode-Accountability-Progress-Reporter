@@ -46,7 +46,6 @@ PASSWORD=YourPassword
 EMAIL_USER=YourEmail
 EMAIL_PASS=YourNodeMailerPassword
 
-
 # Recipient Email Address
 EMAIL_RECIPIENT=AccountabilityPartnerEmail
 ```
