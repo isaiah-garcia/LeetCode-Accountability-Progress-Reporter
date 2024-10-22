@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-require('dotenv').config();
+require('dotenv').config({ path: '/Users/isaiah/LeetCode-Accountability-Partner/.env' });
 const dateFns = require('date-fns');
 const puppeteer = require('puppeteer');
 const nodemailer = require('nodemailer');
@@ -13,7 +13,7 @@ async function countRowsAndEmail() {
     let browser;
 
     try {
-        browser = await puppeteer.launch({ headless: false });
+        browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();
 
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)');
@@ -48,6 +48,7 @@ async function countRowsAndEmail() {
             const fileContent = await fs.readFile(filePath, 'utf-8');
             const lines = fileContent.split(/\r?\n/);
             oldCount = parseInt(lines[0], 10);
+            console.log(oldCount)
             lastProblem = lines[1];
 
         } catch (error) {
@@ -60,14 +61,16 @@ async function countRowsAndEmail() {
         for (let element of elements) {
             dailyCount++;
             if (element.includes(lastProblem)) {
-                // console.log(`Found "${lastProblem}" after checking ${dailyCount} rows.`);
+                console.log(`Found "${lastProblem}" after checking ${dailyCount} rows.`);
                 break;
             }
         }
 
         dailyCount = dailyCount - 1;
+        console.log(dailyCount)
 
         let totalCompleted = oldCount + dailyCount;
+        console.log(totalCompleted)
         const data = `${totalCompleted}\n${newestProblem}`;
         await fs.writeFile(filePath, data, 'utf-8');
 
@@ -90,6 +93,7 @@ async function countRowsAndEmail() {
           `Total problems completed: ${totalCompleted}`
         ].join('\n'); 
 
+        console.log(message)
         // Send email to accountability partner
         const transporter = nodemailer.createTransport({
           service: 'gmail',
@@ -120,6 +124,8 @@ async function countRowsAndEmail() {
 }
 
 countRowsAndEmail();
+
+console.log(`${new Date().toISOString()} - Process completed successfully.`);
 
 
 
