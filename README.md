@@ -16,12 +16,22 @@ HELP if you have not completed at least 5 problems.
 
 
 ## Installation
-Step 1: Go to your email account and create a new app password for nodemailer to send emails through your account (assuming you have 2FA). Here is the link for gmail: 
+Step 1:
+Install node
+```bash
+npm init -y
+```
+
+```bash
+npm install dotenv date-fns puppeteer nodemailer
+```
+
+Step 2: Go to your email account and create a new app password for nodemailer to send emails through your account (assuming you have 2FA). Here is the link for gmail: 
 https://myaccount.google.com/apppasswords 
 
 After you create your nodemailer password, add it to your .env file (see next step).
 
-Step 2: Add .env to gitignore, then fill out your .env file like this:
+Step 3: Add .env to gitignore, then fill out your .env file like this:
 
 ```bash
 # URLs                                    
@@ -47,7 +57,7 @@ GitHub: https://leetcode.com/accounts/github/login/?next=%2F \
 Facebook: https://leetcode.com/accounts/facebook/login/?next=%2F \
 LinkedIn: https://leetcode.com/accounts/linkedin_oauth2/login/?next=%2Fprogress%2F 
 
-Step 3: Setup CronJob in terminal
+Step 4 (last step): Setup CronJob in terminal
 
 ```bash
 crontab -e
