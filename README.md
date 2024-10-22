@@ -49,8 +49,7 @@ EMAIL_PASS=YourNodeMailerPassword
 # Recipient Email Address
 EMAIL_RECIPIENT=AccountabilityPartnerEmail
 ```
-
-CHOOSE YOUR LEETCODE LOGIN METHOD: \
+If you log in to LeetCode using a 3rd party, replace the link following LOGIN_URL= with your preferred method: \
 Google: https://leetcode.com/accounts/google/login/?next=%2F \
 GitHub: https://leetcode.com/accounts/github/login/?next=%2F \
 Facebook: https://leetcode.com/accounts/facebook/login/?next=%2F \
