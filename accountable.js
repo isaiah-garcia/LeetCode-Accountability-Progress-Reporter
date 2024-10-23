@@ -111,15 +111,15 @@ async function countRowsAndEmail() {
         });
 
         // Email options
-        // const mailOptions = {
-        //   from: process.env.EMAIL_USER,
-        //   to: process.env.EMAIL_RECIPIENT,
-        //   subject: subject,  
-        //   text: message,  
-        // };
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: process.env.EMAIL_RECIPIENT,
+          subject: subject,  
+          text: message,  
+        };
 
-        // // Send email
-        // await transporter.sendMail(mailOptions);
+        // Send email
+        await transporter.sendMail(mailOptions);
 
     } catch (error) {
       console.error("An error occurred:", error);
