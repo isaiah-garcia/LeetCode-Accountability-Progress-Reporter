@@ -13,13 +13,20 @@ async function countRowsAndEmail() {
     let browser;
 
     try {
-        browser = await puppeteer.launch({ headless: true });
+        browser = await puppeteer.launch({ headless: false });
         const page = await browser.newPage();
 
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)');
 
         // Login
         await page.goto(loginUrl, { waitUntil: 'networkidle2' });
+
+        // Get the HTML of the page
+        const html = await page.content(); // This captures the HTML content of the page
+        
+        // Save the HTML to a file
+        await fs.writeFile('botDetection.html', html);
+
         await page.click('form button[type="submit"]');
         await page.waitForNavigation({ waitUntil: 'networkidle2' });
 
@@ -104,15 +111,15 @@ async function countRowsAndEmail() {
         });
 
         // Email options
-        const mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: process.env.EMAIL_RECIPIENT,
-          subject: subject,  
-          text: message,  
-        };
+        // const mailOptions = {
+        //   from: process.env.EMAIL_USER,
+        //   to: process.env.EMAIL_RECIPIENT,
+        //   subject: subject,  
+        //   text: message,  
+        // };
 
-        // Send email
-        await transporter.sendMail(mailOptions);
+        // // Send email
+        // await transporter.sendMail(mailOptions);
 
     } catch (error) {
       console.error("An error occurred:", error);
@@ -132,3 +139,6 @@ console.log(`${new Date().toISOString()} - Process completed successfully.`);
 
 // const today = new Date();
 // const formattedDate = dateFns.format(today, 'MMM d, yyyy');
+
+// 17
+// 283. Move Zeroes
