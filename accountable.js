@@ -7,22 +7,62 @@ const nodemailer = require('nodemailer');
 const fs = require('fs').promises;
 const path = require('path');
 
+function sleep(duration) {
+  return new Promise(resolve => {
+      setTimeout(resolve, duration);
+  });
+}
+
+
 async function countRowsAndEmail() {
     const loginUrl = process.env.LOGIN_URL;
     const targetUrl = process.env.TARGET_URL;
     let browser;
 
     try {
-        browser = await puppeteer.launch({ headless: true });
+          browser = await puppeteer.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+    
         const page = await browser.newPage();
 
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)');
+        await page.setViewport({
+            width: 1920,
+            height: 1080,
+            deviceScaleFactor: 1,
+        });
+      
+
+        await page.evaluateOnNewDocument(() => {
+          Object.defineProperty(navigator, 'webdriver', {
+              get: () => false,
+          });
+          // Pass the Chrome Test.
+          window.navigator.chrome = {
+              runtime: {},
+              // etc.
+          };
+          // Pass the Permissions Test.
+          const originalQuery = window.navigator.permissions.query;
+          window.navigator.permissions.query = (parameters) => (
+              parameters.name === 'notifications' ?
+                  Promise.resolve({ state: Notification.permission }) :
+                  originalQuery(parameters)
+            );
+        });
+
+
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36');
+
 
         // Login
         await page.goto(loginUrl, { waitUntil: 'networkidle2' });
 
         // Get the HTML of the page
         const html = await page.content(); // This captures the HTML content of the page
+
+        await sleep(10000);
         
         // Save the HTML to a file
         await fs.writeFile('botDetection.html', html);
@@ -49,13 +89,12 @@ async function countRowsAndEmail() {
         let oldCount = 0;
         let lastProblem = '';
         let newestProblem = elements.length > 1 ? elements[1] : '';
-        
 
         try {
             const fileContent = await fs.readFile(filePath, 'utf-8');
             const lines = fileContent.split(/\r?\n/);
             oldCount = parseInt(lines[0], 10);
-            console.log(oldCount)
+            // console.log(oldCount)
             lastProblem = lines[1];
 
         } catch (error) {
@@ -65,19 +104,26 @@ async function countRowsAndEmail() {
           }
         }
 
+        let problems = [];
+
         for (let element of elements) {
             dailyCount++;
+            problems.push(element)
             if (element.includes(lastProblem)) {
                 console.log(`Found "${lastProblem}" after checking ${dailyCount} rows.`);
                 break;
             }
         }
 
+        problems.pop();
+
+        let problemsStr = problems.join('\n');
+
         dailyCount = dailyCount - 1;
-        console.log(dailyCount)
+        // console.log(dailyCount)
 
         let totalCompleted = oldCount + dailyCount;
-        console.log(totalCompleted)
+        // console.log(totalCompleted)
         const data = `${totalCompleted}\n${newestProblem}`;
         await fs.writeFile(filePath, data, 'utf-8');
 
@@ -97,10 +143,12 @@ async function countRowsAndEmail() {
 
         const message = [
           `Daily count: ${dailyCount}`,
-          `Total problems completed: ${totalCompleted}`
+          `Total problems completed: ${totalCompleted}\n`,
+          problemsStr
         ].join('\n'); 
 
         console.log(message)
+
         // Send email to accountability partner
         const transporter = nodemailer.createTransport({
           service: 'gmail',
@@ -140,5 +188,5 @@ console.log(`${new Date().toISOString()} - Process completed successfully.`);
 // const today = new Date();
 // const formattedDate = dateFns.format(today, 'MMM d, yyyy');
 
-// 17
-// 283. Move Zeroes
+// 22
+// 819. Most Common Word
