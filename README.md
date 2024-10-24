@@ -1,5 +1,5 @@
 # Accountable
-![Accountable Logo](https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/blob/master/Accountable_logo.png)
+![Accountable Logo](https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/blob/master/accountable_logo.png)
 
 # demo
 Accountable logs in to LeetCode, retrieves your progress and sends an update to your accountability partner's email.
