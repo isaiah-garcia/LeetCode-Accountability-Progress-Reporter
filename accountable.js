@@ -88,12 +88,12 @@ async function countRowsAndEmail() {
           Object.defineProperty(navigator, 'webdriver', {
               get: () => false,
           });
-          // Pass the Chrome Test.
+          // Pass the Chrome Test
           window.navigator.chrome = {
               runtime: {},
-              // etc.
+              
           };
-          // Pass the Permissions Test.
+          // Pass the Permissions Test
           const originalQuery = window.navigator.permissions.query;
           window.navigator.permissions.query = (parameters) => (
               parameters.name === 'notifications' ?
@@ -111,10 +111,7 @@ async function countRowsAndEmail() {
         // check for bot detection
         await checkForChallengePage(page)
 
-        await sleep(5000);
-
-        // await page.waitForNavigation({ waitUntil: 'networkidle2' });
-
+        await sleep(3000);
 
         await page.click('form button[type="submit"]');
         await page.waitForNavigation({ waitUntil: 'networkidle2' });
@@ -131,13 +128,15 @@ async function countRowsAndEmail() {
         const elements = await page.evaluate(() => {
           return Array.from(document.querySelectorAll('div[role="row"] > div[role="cell"]:nth-child(2) > div > div > a.hover\\:text-blue-s')).map(element => element.textContent.trim());
         });
+
+        // console.log(elements)
                 
         const filePath = path.join(__dirname, 'dailyReport.txt');
         
         let dailyCount = 0;
         let oldCount = 0;
         let lastProblem = '';
-        let newestProblem = elements.length > 1 ? elements[1] : '';
+        let newestProblem = elements.length > 1 ? elements[0] : '';
 
         try {
             const fileContent = await fs.readFile(filePath, 'utf-8');
@@ -190,7 +189,7 @@ async function countRowsAndEmail() {
           subject = "HELP: LeetCode Accountability";
         }
 
-        // const base64Image = await fs.readFile('image64.txt', 'utf8');
+        console.log(subject)
 
         const message = [
           `<a href="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter" target="_blank"><img src="https://raw.githubusercontent.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/master/accountable_email_logo.png" alt="Accountable logo" style="max-width: 100%; height: auto;"></a>`,
