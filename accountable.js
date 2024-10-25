@@ -199,7 +199,7 @@ async function countRowsAndEmail() {
           `Total problems completed: ${totalCompleted}<br><br>`,
           problemsStr,
           `<br><br><br><br><br><br>`,
-          `<a href="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter" target="_blank">Get Accountable Today</a>`,
+          `<a href="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter" target="_blank">Get Accountable</a>`,
           `<br>`,
           `<br>`
         ].join(''); 
