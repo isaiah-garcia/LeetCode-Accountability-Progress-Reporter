@@ -13,6 +13,56 @@ function sleep(duration) {
   });
 }
 
+async function checkForChallengePage(page) {
+    const title = await page.title();
+  
+    // Check if the title is "Just a moment..." which is typical for Cloudflare challenge pages
+    if (title === "Just a moment...") {
+        console.log("Challenge page detected. Performing specific actions...");
+  
+        // Add your specific actions here
+        await performChallengeResponseActions(page);
+    } else {
+        console.log("Normal page detected.");
+    }
+  }
+  
+  async function performChallengeResponseActions(page) {
+    // Example action: Wait for a certain amount of time
+    await sleep(5000);
+
+    // Get the HTML of the page
+    const html = await page.content(); // This captures the HTML content of the page
+
+    // Save the HTML to a file
+    await fs.writeFile('botDetection.html', html);
+
+    const iframes = await page.frames();
+    iframes.forEach(frame => {
+        console.log(`Frame found with URL: ${frame.url()}`);
+    });
+
+
+    // Get the element
+    const element = await page.$('#fbMan1');
+    console.log('element found');
+    // Get the bounding box of the element
+    const boundingBox = await element.boundingBox();
+    console.log('box found');
+
+    // Calculate coordinates to click in the height center but 10 pixels from the left
+    const x = boundingBox.x + 30;  // 10 pixels from the left edge of the element
+    const y = boundingBox.y + boundingBox.height / 2;  // Centered vertically
+
+    // Click at the calculated coordinate
+    await page.mouse.click(x, y);
+    console.log('click box');
+
+    console.log('success')
+    await sleep(5000);
+
+  }
+
 
 async function countRowsAndEmail() {
     const loginUrl = process.env.LOGIN_URL;
@@ -55,17 +105,16 @@ async function countRowsAndEmail() {
 
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36');
 
-
         // Login
         await page.goto(loginUrl, { waitUntil: 'networkidle2' });
 
-        // Get the HTML of the page
-        const html = await page.content(); // This captures the HTML content of the page
+        // check for bot detection
+        await checkForChallengePage(page)
 
-        await sleep(10000);
-        
-        // Save the HTML to a file
-        await fs.writeFile('botDetection.html', html);
+        await sleep(5000);
+
+        // await page.waitForNavigation({ waitUntil: 'networkidle2' });
+
 
         await page.click('form button[type="submit"]');
         await page.waitForNavigation({ waitUntil: 'networkidle2' });
@@ -141,11 +190,20 @@ async function countRowsAndEmail() {
           subject = "HELP: LeetCode Accountability";
         }
 
+        // const base64Image = await fs.readFile('image64.txt', 'utf8');
+
         const message = [
+          `<a href="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter" target="_blank"><img src="https://raw.githubusercontent.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/master/accountable_email_logo.png" alt="Accountable logo" style="max-width: 100%; height: auto;"></a>`,
+          `<br><br>`,
           `Daily count: ${dailyCount}`,
-          `Total problems completed: ${totalCompleted}\n`,
-          problemsStr
-        ].join('\n'); 
+          `<br>`,
+          `Total problems completed: ${totalCompleted}<br><br>`,
+          problemsStr,
+          `<br><br><br><br><br><br>`,
+          `<a href="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter" target="_blank">Get Accountable Today</a>`,
+          `<br>`,
+          `<br>`
+        ].join(''); 
 
         console.log(message)
 
@@ -163,7 +221,7 @@ async function countRowsAndEmail() {
           from: process.env.EMAIL_USER,
           to: process.env.EMAIL_RECIPIENT,
           subject: subject,  
-          text: message,  
+          html: message,  
         };
 
         // Send email
@@ -183,10 +241,8 @@ countRowsAndEmail();
 console.log(`${new Date().toISOString()} - Process completed successfully.`);
 
 
-
-
 // const today = new Date();
 // const formattedDate = dateFns.format(today, 'MMM d, yyyy');
 
-// 22
-// 819. Most Common Word
+// 30
+// 1037. Valid Boomerang
