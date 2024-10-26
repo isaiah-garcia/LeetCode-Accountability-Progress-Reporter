@@ -31,12 +31,6 @@ async function checkForChallengePage(page) {
     // Example action: Wait for a certain amount of time
     await sleep(5000);
 
-    // Get the HTML of the page
-    const html = await page.content(); // This captures the HTML content of the page
-
-    // Save the HTML to a file
-    await fs.writeFile('botDetection.html', html);
-
     const iframes = await page.frames();
     iframes.forEach(frame => {
         console.log(`Frame found with URL: ${frame.url()}`);
@@ -53,6 +47,8 @@ async function checkForChallengePage(page) {
     // Calculate coordinates to click in the height center but 10 pixels from the left
     const x = boundingBox.x + 30;  // 10 pixels from the left edge of the element
     const y = boundingBox.y + boundingBox.height / 2;  // Centered vertically
+
+    await sleep(5000);
 
     // Click at the calculated coordinate
     await page.mouse.click(x, y);
@@ -108,18 +104,26 @@ async function countRowsAndEmail() {
         // Login
         await page.goto(loginUrl, { waitUntil: 'networkidle2' });
 
+        // Get the HTML of the page
+        const html = await page.content(); // This captures the HTML content of the page
+
+        // Save the HTML to a file
+        await fs.writeFile('botDetection.html', html);
+
         // check for bot detection
         await checkForChallengePage(page)
 
-        await sleep(3000);
-
         await page.click('form button[type="submit"]');
         await page.waitForNavigation({ waitUntil: 'networkidle2' });
+
+        await sleep(2000);
 
         await page.type('#login_field', process.env.USERNAME);  
         await page.type('#password', process.env.PASSWORD);  
         await page.click('input[type="submit"]');
         await page.waitForNavigation({ waitUntil: 'networkidle2' });
+
+        await sleep(2000);
 
         // Go to target page
         await page.goto(targetUrl, { waitUntil: 'networkidle2' });
@@ -129,7 +133,7 @@ async function countRowsAndEmail() {
           return Array.from(document.querySelectorAll('div[role="row"] > div[role="cell"]:nth-child(2) > div > div > a.hover\\:text-blue-s')).map(element => element.textContent.trim());
         });
 
-        // console.log(elements)
+        console.log(elements)
                 
         const filePath = path.join(__dirname, 'dailyReport.txt');
         
@@ -142,7 +146,7 @@ async function countRowsAndEmail() {
             const fileContent = await fs.readFile(filePath, 'utf-8');
             const lines = fileContent.split(/\r?\n/);
             oldCount = parseInt(lines[0], 10);
-            // console.log(oldCount)
+            console.log(oldCount)
             lastProblem = lines[1];
 
         } catch (error) {
@@ -165,13 +169,13 @@ async function countRowsAndEmail() {
 
         problems.pop();
 
-        let problemsStr = problems.join('\n');
+        let problemsStr = problems.join('<br>');
 
         dailyCount = dailyCount - 1;
-        // console.log(dailyCount)
+        console.log(dailyCount)
 
         let totalCompleted = oldCount + dailyCount;
-        // console.log(totalCompleted)
+        console.log(totalCompleted)
         const data = `${totalCompleted}\n${newestProblem}`;
         await fs.writeFile(filePath, data, 'utf-8');
 
