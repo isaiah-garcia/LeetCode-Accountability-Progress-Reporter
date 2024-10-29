@@ -98,11 +98,13 @@ async function countRowsAndEmail() {
             );
         });
 
-
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36');
 
         // Login
-        await page.goto(loginUrl, { waitUntil: 'networkidle2' });
+        await page.goto(loginUrl, { 
+          waitUntil: 'networkidle2', 
+          timeout: 60000 // Increase timeout to 60 seconds (60000 ms)
+      });
 
         // Get the HTML of the page
         const html = await page.content(); // This captures the HTML content of the page
@@ -123,64 +125,79 @@ async function countRowsAndEmail() {
         await page.click('input[type="submit"]');
         await page.waitForNavigation({ waitUntil: 'networkidle2' });
 
-        await sleep(2000);
+        await sleep(20000);
 
         // Go to target page
-        await page.goto(targetUrl, { waitUntil: 'networkidle2' });
+        await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 60000 });
 
-        // Extract text from each element with the class .text-label-2 under div[role="row"]
-        const elements = await page.evaluate(() => {
-          return Array.from(document.querySelectorAll('div[role="row"] > div[role="cell"]:nth-child(2) > div > div > a.hover\\:text-blue-s')).map(element => element.textContent.trim());
-        });
-
-        console.log(elements)
-                
-        const filePath = path.join(__dirname, 'dailyReport.txt');
-        
         let dailyCount = 0;
-        let oldCount = 0;
+        let problems = [];
         let lastProblem = '';
-        let newestProblem = elements.length > 1 ? elements[0] : '';
+        const filePath = path.join(__dirname, 'dailyReport.txt');
 
         try {
             const fileContent = await fs.readFile(filePath, 'utf-8');
             const lines = fileContent.split(/\r?\n/);
             oldCount = parseInt(lines[0], 10);
-            console.log(oldCount)
+            console.log(oldCount);
             lastProblem = lines[1];
 
         } catch (error) {
-          if (elements.length > 1) {
-            const data = `0\n${newestProblem}`;
-            await fs.writeFile(filePath, data, 'utf-8');
+          console.error('New file', error);
+        }
+
+        let foundLastProblem = false;
+
+        while (!foundLastProblem) {
+          const elements = await page.evaluate(() => {
+            return elements = Array.from(document.querySelectorAll('div[role="row"] > div[role="cell"]:nth-child(2) > div > div > a.hover\\:text-blue-s'))
+            .map(element => element.textContent.trim());
+          });
+
+          for (let element of elements) {
+            dailyCount++;
+            console.log('added count');
+            problems.push(element);
+
+            if (element.includes(lastProblem)) {
+              console.log(`Found '${lastProblem}' after checking ${dailyCount} rows.`);
+              foundLastProblem = true;
+              dailyCount--;
+              break;
+            }
+          
+            if (dailyCount === 10 || dailyCount === 20 || dailyCount === 30) {
+              console.log(`Reached ${dailyCount} rows, moving to the next page.`);
+              await page.click('button[aria-label="next"]');
+              await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 2000))); // Pause for 2 seconds
+              break;
+            }
+          }
+
+          if (!elements.length) {
+            console.log('No more elements found on the current page.');
+            break;
           }
         }
 
-        let problems = [];
+        console.log(`Total checked: ${dailyCount}`);
+        console.log('Problems:', problems);
 
-        for (let element of elements) {
-            dailyCount++;
-            problems.push(element)
-            if (element.includes(lastProblem)) {
-                console.log(`Found "${lastProblem}" after checking ${dailyCount} rows.`);
-                break;
-            }
-        }
-
-        problems.pop();
-
+        let newestProblem = problems.length > 0 ? problems[0] : '';
         let problemsStr = problems.join('<br>');
 
-        dailyCount = dailyCount - 1;
-        console.log(dailyCount)
+        let totalCompleted = 0;
 
-        let totalCompleted = oldCount + dailyCount;
-        console.log(totalCompleted)
-        const data = `${totalCompleted}\n${newestProblem}`;
-        await fs.writeFile(filePath, data, 'utf-8');
+        if (problems.length > 1) {
+          totalCompleted = oldCount + dailyCount;
+          console.log(totalCompleted);
+          const data = `${totalCompleted}\n${newestProblem}`;
+          await fs.writeFile(filePath, data, 'utf-8');
+        }
 
         // Determine the email subject based on daily count
         let subject;
+
         if (dailyCount >= 20) {
           subject = "DUDE: LeetCode Accountability";
         } else if (dailyCount >= 15) {
@@ -247,5 +264,3 @@ console.log(`${new Date().toISOString()} - Process completed successfully.`);
 // const today = new Date();
 // const formattedDate = dateFns.format(today, 'MMM d, yyyy');
 
-// 30
-// 1037. Valid Boomerang
