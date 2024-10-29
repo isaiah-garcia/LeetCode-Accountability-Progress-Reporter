@@ -8,7 +8,7 @@ Accountable logs in to LeetCode, retrieves your progress and sends an update to 
 # Simple Email Reports 
 SUCCESS if you completed more than 5 problems!
 
-![Accountable success email example](https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/blob/master/success_email.png)
+![Accountable success email example](https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/blob/master/success_email.jpg)
 
 HELP if you have not completed at least 5 problems.
 
