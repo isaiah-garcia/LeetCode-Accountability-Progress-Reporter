@@ -193,6 +193,10 @@ async function countRowsAndEmail() {
           console.log(totalCompleted);
           const data = `${totalCompleted}\n${newestProblem}`;
           await fs.writeFile(filePath, data, 'utf-8');
+        } else {
+          dailyCount = 0;
+          totalCompleted = oldCount;
+          problemsStr = '';
         }
 
         // Determine the email subject based on daily count
