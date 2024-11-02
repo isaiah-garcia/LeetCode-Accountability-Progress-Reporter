@@ -61,7 +61,7 @@ async function scrapeRowsAndEmail() {
 
     try {
           browser = await puppeteer.launch({
-            headless: false,
+            headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
     
@@ -77,12 +77,12 @@ async function scrapeRowsAndEmail() {
           Object.defineProperty(navigator, 'webdriver', {
               get: () => false,
           });
-          // Pass the Chrome Test
+
           window.navigator.chrome = {
               runtime: {},
               
           };
-          // Pass the Permissions Test
+
           const originalQuery = window.navigator.permissions.query;
           window.navigator.permissions.query = (parameters) => (
               parameters.name === 'notifications' ?
@@ -99,10 +99,9 @@ async function scrapeRowsAndEmail() {
           timeout: 60000 // Increase timeout to 60 seconds (60000 ms)
       });
 
-        // Get the HTML of the page
-        const html = await page.content(); // This captures the HTML content of the page
+        // Get the HTML of page and save to file
+        const html = await page.content();
 
-        // Save the HTML to a file
         await fs.writeFile('botDetection.html', html);
 
         // check for bot detection
@@ -136,6 +135,7 @@ async function scrapeRowsAndEmail() {
 
         let foundAllDailyProblems = false;
 
+        // get all problems of the same date
         while (!foundAllDailyProblems) {
           const dates = await page.evaluate(() => {
             const rows = document.querySelectorAll('div[role="row"]');
@@ -143,24 +143,20 @@ async function scrapeRowsAndEmail() {
             return Array.from(rows).map(row => {
               const dateCell = row.querySelector('div[role="cell"]:first-child .text-sd-muted-foreground');
               return dateCell ? dateCell.textContent.trim() : null;
-            }).filter(date => date !== null); // Filter out any null values
+            }).filter(date => date !== null); 
           });
-          console.log(dates)
 
           const elements = await page.evaluate(() => {
             const rows = document.querySelectorAll('div[role="row"]');
             
             return Array.from(rows).map(row => {
-              // Target the second cell and find the anchor within it
               const nameElement = row.querySelector('div[role="cell"]:nth-child(2) a.font-semibold');
               const text = nameElement ? nameElement.textContent.trim() : null;
               const href = nameElement ? nameElement.getAttribute('href') : null;
               
-              // Return only the name and href, no anchor tag
               return text && href ? { text, href } : null;
-            }).filter(item => item !== null); // Remove any null values
+            }).filter(item => item !== null);
           });
-          console.log(elements)
 
           const first = dates[0];
 
@@ -168,19 +164,13 @@ async function scrapeRowsAndEmail() {
             const date = dates[i];
             const element = elements[i];
         
-            // if (date !== first) {
-            //   console.log(`Total of ${dailyCount} problems completed today.`);
-            //   foundAllDailyProblems = true;
-            //   break;
-            // }
-            if (date == 'Sun') {
+            if (date !== first) {
               console.log(`Total of ${dailyCount} problems completed today.`);
               foundAllDailyProblems = true;
               break;
             }
         
             dailyCount++;
-            console.log('added count');
             problems.push(`<a href="https://leetcode.com${element.href}" target="_blank">${element.text}</a><br>`);
           }
 
@@ -189,9 +179,6 @@ async function scrapeRowsAndEmail() {
             break;
           }
         }
-
-        console.log(`Total checked: ${dailyCount}`);
-        console.log('Problems:', problems);
 
         const problemsHTML = problems.join('');
 
@@ -209,8 +196,6 @@ async function scrapeRowsAndEmail() {
           subject = "HELP: LeetCode Accountability";
         }
 
-        console.log(subject)
-
         const message = [
           `<a href="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter" target="_blank"><img src="https://raw.githubusercontent.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/master/accountable_email_logo.png" alt="Accountable logo" style="max-width: 100%; height: auto;"></a>`,
           `<br><br>`,
@@ -224,8 +209,6 @@ async function scrapeRowsAndEmail() {
           `<br>`
         ].join(''); 
 
-        console.log(message)
-
         // Send email to accountability partner
         const transporter = nodemailer.createTransport({
           service: 'gmail',
@@ -235,7 +218,6 @@ async function scrapeRowsAndEmail() {
           },
         });
 
-        // Email options
         const mailOptions = {
           from: process.env.EMAIL_USER,
           to: process.env.EMAIL_RECIPIENT,
@@ -243,7 +225,6 @@ async function scrapeRowsAndEmail() {
           html: message,  
         };
 
-        // Send email
         await transporter.sendMail(mailOptions);
 
     } catch (error) {
