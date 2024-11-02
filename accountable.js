@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 
 require('dotenv').config({ path: '/Users/isaiah/LeetCode-Accountability-Partner/.env' });
-const dateFns = require('date-fns');
 const puppeteer = require('puppeteer');
 const nodemailer = require('nodemailer');
 const fs = require('fs').promises;
-const path = require('path');
 
 function sleep(duration) {
   return new Promise(resolve => {
@@ -28,7 +26,7 @@ async function checkForChallengePage(page) {
   }
   
   async function performChallengeResponseActions(page) {
-    // Example action: Wait for a certain amount of time
+   
     await sleep(5000);
 
     const iframes = await page.frames();
@@ -37,20 +35,17 @@ async function checkForChallengePage(page) {
     });
 
 
-    // Get the element
     const element = await page.$('#fbMan1');
     console.log('element found');
-    // Get the bounding box of the element
+
     const boundingBox = await element.boundingBox();
     console.log('box found');
 
-    // Calculate coordinates to click in the height center but 10 pixels from the left
-    const x = boundingBox.x + 30;  // 10 pixels from the left edge of the element
-    const y = boundingBox.y + boundingBox.height / 2;  // Centered vertically
+    const x = boundingBox.x + 30;  
+    const y = boundingBox.y + boundingBox.height / 2; 
 
     await sleep(5000);
 
-    // Click at the calculated coordinate
     await page.mouse.click(x, y);
     console.log('click box');
 
@@ -59,15 +54,14 @@ async function checkForChallengePage(page) {
 
   }
 
-
-async function countRowsAndEmail() {
+async function scrapeRowsAndEmail() {
     const loginUrl = process.env.LOGIN_URL;
     const targetUrl = process.env.TARGET_URL;
     let browser;
 
     try {
           browser = await puppeteer.launch({
-            headless: true,
+            headless: false,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
     
@@ -79,7 +73,6 @@ async function countRowsAndEmail() {
             deviceScaleFactor: 1,
         });
       
-
         await page.evaluateOnNewDocument(() => {
           Object.defineProperty(navigator, 'webdriver', {
               get: () => false,
@@ -131,47 +124,64 @@ async function countRowsAndEmail() {
         await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 60000 });
 
         let dailyCount = 0;
-        let problems = [];
-        let lastProblem = '';
-        const filePath = path.join(__dirname, 'dailyReport.txt');
+        let totalCompleted = 0;
+        const problems = [];
+        
+        // get total probs
+        totalCompleted = await page.evaluate(() => {
+          const element = document.querySelector('div.text-sd-blue-500 .text-2xl.font-semibold');
+          return element ? element.textContent.trim() : null;
+        });
+        console.log(totalCompleted)
 
-        try {
-            const fileContent = await fs.readFile(filePath, 'utf-8');
-            const lines = fileContent.split(/\r?\n/);
-            oldCount = parseInt(lines[0], 10);
-            console.log(oldCount);
-            lastProblem = lines[1];
+        let foundAllDailyProblems = false;
 
-        } catch (error) {
-          console.error('New file', error);
-        }
-
-        let foundLastProblem = false;
-
-        while (!foundLastProblem) {
-          const elements = await page.evaluate(() => {
-            return elements = Array.from(document.querySelectorAll('div[role="row"] > div[role="cell"]:nth-child(2) > div > div > a.hover\\:text-blue-s'))
-            .map(element => element.textContent.trim());
+        while (!foundAllDailyProblems) {
+          const dates = await page.evaluate(() => {
+            const rows = document.querySelectorAll('div[role="row"]');
+            
+            return Array.from(rows).map(row => {
+              const dateCell = row.querySelector('div[role="cell"]:first-child .text-sd-muted-foreground');
+              return dateCell ? dateCell.textContent.trim() : null;
+            }).filter(date => date !== null); // Filter out any null values
           });
+          console.log(dates)
 
-          for (let element of elements) {
+          const elements = await page.evaluate(() => {
+            const rows = document.querySelectorAll('div[role="row"]');
+            
+            return Array.from(rows).map(row => {
+              // Target the second cell and find the anchor within it
+              const nameElement = row.querySelector('div[role="cell"]:nth-child(2) a.font-semibold');
+              const text = nameElement ? nameElement.textContent.trim() : null;
+              const href = nameElement ? nameElement.getAttribute('href') : null;
+              
+              // Return only the name and href, no anchor tag
+              return text && href ? { text, href } : null;
+            }).filter(item => item !== null); // Remove any null values
+          });
+          console.log(elements)
+
+          const first = dates[0];
+
+          for (let i = 0; i < elements.length && i < dates.length; i++) {
+            const date = dates[i];
+            const element = elements[i];
+        
+            // if (date !== first) {
+            //   console.log(`Total of ${dailyCount} problems completed today.`);
+            //   foundAllDailyProblems = true;
+            //   break;
+            // }
+            if (date == 'Sun') {
+              console.log(`Total of ${dailyCount} problems completed today.`);
+              foundAllDailyProblems = true;
+              break;
+            }
+        
             dailyCount++;
             console.log('added count');
-            problems.push(element);
-
-            if (element.includes(lastProblem)) {
-              console.log(`Found '${lastProblem}' after checking ${dailyCount} rows.`);
-              foundLastProblem = true;
-              dailyCount--;
-              break;
-            }
-          
-            if (dailyCount === 10 || dailyCount === 20 || dailyCount === 30) {
-              console.log(`Reached ${dailyCount} rows, moving to the next page.`);
-              await page.click('button[aria-label="next"]');
-              await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 2000))); // Pause for 2 seconds
-              break;
-            }
+            problems.push(`<a href="https://leetcode.com${element.href}" target="_blank">${element.text}</a><br>`);
           }
 
           if (!elements.length) {
@@ -183,23 +193,8 @@ async function countRowsAndEmail() {
         console.log(`Total checked: ${dailyCount}`);
         console.log('Problems:', problems);
 
-        let newestProblem = problems.length > 0 ? problems[0] : '';
-        let problemsStr = problems.join('<br>');
+        const problemsHTML = problems.join('');
 
-        let totalCompleted = 0;
-
-        if (problems.length > 1) {
-          totalCompleted = oldCount + dailyCount;
-          console.log(totalCompleted);
-          const data = `${totalCompleted}\n${newestProblem}`;
-          await fs.writeFile(filePath, data, 'utf-8');
-        } else {
-          dailyCount = 0;
-          totalCompleted = oldCount;
-          problemsStr = '';
-        }
-
-        // Determine the email subject based on daily count
         let subject;
 
         if (dailyCount >= 20) {
@@ -222,7 +217,7 @@ async function countRowsAndEmail() {
           `Daily count: ${dailyCount}`,
           `<br>`,
           `Total problems completed: ${totalCompleted}<br><br>`,
-          problemsStr,
+          problemsHTML,
           `<br><br><br><br><br><br>`,
           `<a href="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter" target="_blank">Get Accountable</a>`,
           `<br>`,
@@ -260,11 +255,6 @@ async function countRowsAndEmail() {
     }
 }
 
-countRowsAndEmail();
+scrapeRowsAndEmail();
 
 console.log(`${new Date().toISOString()} - Process completed successfully.`);
-
-
-// const today = new Date();
-// const formattedDate = dateFns.format(today, 'MMM d, yyyy');
-
