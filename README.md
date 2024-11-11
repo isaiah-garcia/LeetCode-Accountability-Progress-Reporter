@@ -2,9 +2,7 @@
 <img src="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/blob/master/images/accountable_logo.png" alt="accountable logo" width="700"/>
 
 
-# demo
 Accountable logs in to LeetCode, retrieves your progress and sends an update to your accountability partner's email.
-![Accountable Demo]()
 
 # Simple Email Reports 
 SUCCESS if you completed more than 5 problems!
