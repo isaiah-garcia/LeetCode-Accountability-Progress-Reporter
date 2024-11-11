@@ -2,10 +2,10 @@
 <img src="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/blob/master/images/accountable_logo.png" alt="accountable logo" width="700"/>
 
 
-Accountable logs in to LeetCode, retrieves your progress and sends an update to your accountability partner's email.
+Accountable retrieves your LeetCode progress and sends an email update to your accountability partner.
 
 # Simple Email Reports 
-SUCCESS if you completed more than 5 problems!
+SUCCESS if you complete 5+ problems!
 
 <img src="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/blob/master/images/success_email.jpg" alt="success email" width="300"/>
 
@@ -22,14 +22,14 @@ npm install
 npm start
 ```
 
-STEP 2: Go to your email account and create a new app password for nodemailer to send emails through your account (assuming you have 2FA). Here is the link for gmail: 
-https://myaccount.google.com/apppasswords 
-
-After you create your nodemailer password, add it to your .env file (see next step).
+STEP 2: 
+- Go to your email account and create a new app password (This is for nodemailer to send the email via your account). 
+- Here is the link for gmail: https://myaccount.google.com/apppasswords 
+- After creating your nodemailer password, add it to your .env file (see next step for more details).
 
 STEP 3: Add .env to gitignore, then fill out your .env file like this:
 
-```bash
+```
 # URLs                                    
 LOGIN_URL=https://leetcode.com/accounts/login/?next=%2Fprogress%2F
 TARGET_URL=https://leetcode.com/progress/
@@ -40,7 +40,7 @@ PASSWORD=YourPassword
 
 # Email Credentials
 EMAIL_USER=YourEmail
-EMAIL_PASS=YourNewAppPassword
+EMAIL_PASS=YourNewlyCreatedAppPassword
 
 # Recipient Email Address
 EMAIL_RECIPIENT=AccountabilityPartnerEmail
@@ -51,16 +51,18 @@ GitHub: https://leetcode.com/accounts/github/login/?next=%2F \
 Facebook: https://leetcode.com/accounts/facebook/login/?next=%2F \
 LinkedIn: https://leetcode.com/accounts/linkedin_oauth2/login/?next=%2Fprogress%2F 
 
-STEP 4 (last step): Setup CronJob in terminal
+NOTE: YOU MAY NEED TO ADJUST CODE LOGIC BASED ON YOUR LOGIN METHOD. THE CODE IS CURRENTLY SETUP FOR A 3RD PARTY LOGIN.
 
-```bash
+STEP 4: Setup CronJob in terminal
+
+```
 crontab -e
 ```
 Mine is setup like this: execution time, file path, node path, file name >> log file
 
 Followed by a command to wake up my machine 1 minute before.
 
-```bash
+```
 0 18 * * * cd path/to/file && path/to/node/version accountable.js >> /tmp/accountable.log 2>&1
 
 59 17 * * * sudo rtcwake -m no -t $(date +\%s -d 'today 17:59')
