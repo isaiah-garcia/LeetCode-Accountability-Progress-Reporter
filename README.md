@@ -51,7 +51,9 @@ GitHub: https://leetcode.com/accounts/github/login/?next=%2F \
 Facebook: https://leetcode.com/accounts/facebook/login/?next=%2F \
 LinkedIn: https://leetcode.com/accounts/linkedin_oauth2/login/?next=%2Fprogress%2F 
 
-NOTE: YOU MAY NEED TO ADJUST CODE LOGIC BASED ON YOUR LOGIN METHOD. THE CODE IS CURRENTLY SETUP FOR A 3RD PARTY LOGIN.
+NOTE: 
+YOU MAY NEED TO ADJUST CODE BASED ON YOUR LOGIN METHOD. THE CODE IS CURRENTLY SETUP FOR A 3RD PARTY LOGIN.
+
 
 STEP 4: Setup CronJob in terminal
 
