@@ -43,7 +43,7 @@ EMAIL_USER=YourEmail
 EMAIL_PASS=YourNewlyCreatedAppPassword
 
 # Recipient Email Address
-EMAIL_RECIPIENT=AccountabilityPartnerEmail
+EMAIL_RECIPIENT=AccountabilityPartner@Email.com
 ```
 If you login using a 3rd party, simply replace the LOGIN_URL= link: \
 Google: https://leetcode.com/accounts/google/login/?next=%2F \
