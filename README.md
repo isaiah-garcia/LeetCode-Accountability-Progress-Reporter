@@ -1,5 +1,5 @@
 # Accountable
-<img src="accountable_logo.png" alt="accountable logo" width="700"/>
+<img src="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/blob/master/images/accountable_logo.png" alt="accountable logo" width="700"/>
 
 
 # demo
@@ -9,11 +9,11 @@ Accountable logs in to LeetCode, retrieves your progress and sends an update to 
 # Simple Email Reports 
 SUCCESS if you completed more than 5 problems!
 
-<img src="success_email.jpg" alt="success email" width="300"/>
+<img src="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/blob/master/images/success_email.jpg" alt="success email" width="300"/>
 
 HELP if you have not completed at least 5 problems.
 
-<img src="help_email.png" alt="help email" width="300"/>
+<img src="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/blob/master/images/help_email.png" alt="help email" width="300"/>
 
 ## Installation
 Step 1:
