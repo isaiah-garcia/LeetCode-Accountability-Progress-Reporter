@@ -38,13 +38,13 @@ Step 3: Add .env to gitignore, then fill out your .env file like this:
 LOGIN_URL=https://leetcode.com/accounts/login/?next=%2Fprogress%2F
 TARGET_URL=https://leetcode.com/progress/
 
-# Login Credentials
+# LeetCode Login Credentials
 USERNAME=YourUsername
 PASSWORD=YourPassword
 
 # Email Credentials
 EMAIL_USER=YourEmail
-EMAIL_PASS=YourNodeMailerPassword
+EMAIL_PASS=YourNewAppPassword
 
 # Recipient Email Address
 EMAIL_RECIPIENT=AccountabilityPartnerEmail
