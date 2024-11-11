@@ -147,7 +147,7 @@ function determineSubject(dailyCount) {
 function constructMessage(dailyCount, totalCompleted, problems) {
   const problemsHTML = problems.join('');
   return [
-    `<a href="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter" target="_blank"><img src="https://raw.githubusercontent.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/master/accountable_email_logo.png" alt="Accountable logo" style="max-width: 100%; height: auto;"></a>`,
+    `<a href="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter" target="_blank"><img src="https://github.com/isaiah-garcia/LeetCode-Accountability-Progress-Reporter/blob/master/images/accountable_email_logo.png" alt="Accountable logo" style="max-width: 100%; height: auto;"></a>`,
     `<br><br>`,
     `Daily count: ${dailyCount}`,
     `<br>`,
